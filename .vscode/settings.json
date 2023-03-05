@@ -1,0 +1,4 @@
+{
+    "python.pipenvPath": "./.venv/bin",
+    "python.defaultInterpreterPath": "./.venv/bin/python"
+}
