@@ -1,4 +1,7 @@
 {
     "python.pipenvPath": "./.venv/bin",
-    "python.defaultInterpreterPath": "./.venv/bin/python"
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "mypy.dmypyExecutable": "${workspaceFolder}/.venv/bin/dmypy",
+    "mypy.enabled": false,
+    "flake8.path": ["./.venv/bin/flake8"]
 }
