@@ -3,6 +3,8 @@ Simple project leveraging Whisper(Voice Audio -> Text), ChatGPT(Text -> commands
 
 Interesting thing here is that it can convert commands from many different languages (English, Spanish, Japanese tested so far) into commands.
 
+(this is just a test edit)
+
 # Starting it up
 0) Have the home-assistant.io server up and running
 1) Make sure to set the following env-vars in an .env file
