@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "jarvis"
+version = "0.1.0"
+description = "\"A versatile audio voice assistant\""
+authors = ["Kevin Santana <kevinsantana11@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+tqdm = "^4.66.5"
+requests = "^2.32.3"
+openai = "^1.52.0"
+anthropic = "*"
+tenacity = "^9.0.0"
+python-dotenv = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "*"
+mypy = "*"
+pytest = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.mypy]
+python_version = "3.12"
+follow_imports = "normal"
+check_untyped_defs = true
+warn_unused_configs = true
+warn_redundant_casts =true
+warn_unused_ignores = true
+strict_equality = true
+extra_checks = true
+disallow_subclassing_any = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+no_implicit_reexport = true
+
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+warn_return_any = true
+
+files = [
+  "jarvis/**/*.py",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+  "tests/**/*_tests.py",
+]
