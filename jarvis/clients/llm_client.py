@@ -38,12 +38,6 @@ class LLMClient(_LLMClient):
         )
         return new_memory + list([MessageParam(content=response.content, role="user")])
 
-    def invoke(
-        self, request: str, memory: list[MessageParam], tools: list[ToolParam]
-    ) -> list[MessageParam]:
-        self._invoke(request, memory, tools)
-
-
 
 class StatefulLLMClient(LLMClient):
     _memory: list[MessageParam]
@@ -53,7 +47,12 @@ class StatefulLLMClient(LLMClient):
         super().__init__(api_key, max_token, model)
 
     @typing.override
-    def invoke(self, request: str, tools: list[ToolParam], memory: list[MessageParam] | None = None) -> list[MessageParam]:
+    def invoke(
+        self,
+        request: str,
+        tools: list[ToolParam],
+        memory: list[MessageParam] | None = None,
+    ) -> list[MessageParam]:
         self._memory = super().invoke(request, tools, memory or self._memory)
         return self._memory
 
