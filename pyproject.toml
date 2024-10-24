@@ -13,6 +13,7 @@ openai = "^1.52.0"
 anthropic = "*"
 tenacity = "^9.0.0"
 python-dotenv = "^1.0.1"
+PyAudio = "*"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"
