@@ -1,16 +1,20 @@
+import typing
 import wave
 
 import openai
 import pyaudio
 
 
-class AudioToTextIn:
-    pyaudio_instance = pyaudio.PyAudio()
+class AudioToText:
+    pyaudio_instance: pyaudio.PyAudio
     CHANNELS = 1
     CHUNK = 1024
     RATE = 44100
     FORMAT = pyaudio.paInt16
     RECORD_SECONDS = 5
+
+    def __init__(self) -> None:
+        self.pyaudio_instance = pyaudio.PyAudio()
 
     def use(self) -> str:
         write_buffer: wave.Wave_write = wave.open("temp_recording.wav", "wb")

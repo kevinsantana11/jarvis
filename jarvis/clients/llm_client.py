@@ -1,4 +1,5 @@
 import abc
+import typing
 
 import anthropic
 from anthropic.types import MessageParam, ToolParam
@@ -9,8 +10,8 @@ class _LLMClient(abc.ABC):
     def __init__(self, api_key: str, max_token: int, model: str): ...
 
     @abc.abstractmethod
-    def _invoke(
-        self, requests: str, memory: list[MessageParam], tools: list[ToolParam]
+    def invoke(
+        self, requests: str, tools: list[ToolParam], memory: list[MessageParam]
     ) -> list[MessageParam]: ...
 
 
@@ -24,8 +25,9 @@ class LLMClient(_LLMClient):
         self._model = model
         self._client = anthropic.Client(api_key=api_key)
 
-    def _invoke(
-        self, request: str, memory: list[MessageParam], tools: list[ToolParam]
+    @typing.override
+    def invoke(
+        self, request: str, tools: list[ToolParam], memory: list[MessageParam]
     ) -> list[MessageParam]:
         new_memory = memory + list([MessageParam(content=request, role="user")])
         response = self._client.messages.create(
@@ -36,6 +38,12 @@ class LLMClient(_LLMClient):
         )
         return new_memory + list([MessageParam(content=response.content, role="user")])
 
+    def invoke(
+        self, request: str, memory: list[MessageParam], tools: list[ToolParam]
+    ) -> list[MessageParam]:
+        self._invoke(request, memory, tools)
+
+
 
 class StatefulLLMClient(LLMClient):
     _memory: list[MessageParam]
@@ -44,8 +52,10 @@ class StatefulLLMClient(LLMClient):
         self._memory = list[MessageParam]()
         super().__init__(api_key, max_token, model)
 
-    def invoke(self, request: str, tools: list[ToolParam]) -> None:
-        self._memory = super()._invoke(request, self._memory, tools)
+    @typing.override
+    def invoke(self, request: str, tools: list[ToolParam], memory: list[MessageParam] | None = None) -> list[MessageParam]:
+        self._memory = super().invoke(request, tools, memory or self._memory)
+        return self._memory
 
     def reset(self) -> None:
         self._memory = list()

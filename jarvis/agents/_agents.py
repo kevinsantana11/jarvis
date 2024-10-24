@@ -1,14 +1,15 @@
 import abc
+import typing
 
 from anthropic.types import ToolParam
 
-from jarvis.clients.llm_client import LLMClient, StatefulLLMClient
+from jarvis.clients.llm_client import LLMClient
 
 
 class Agent(abc.ABC):
     _directive: str
     _tools: dict[str, ToolParam]
-    _llm_client: StatefulLLMClient
+    _llm_client: LLMClient
 
     @abc.abstractmethod
     def __init__(self, directive: str, llm_client: LLMClient): ...
@@ -29,21 +30,11 @@ class Agent(abc.ABC):
         del self._tools[name]
 
 
-class BaseAgent(Agent):
-    def __init__(self, directive: str, llm_client: StatefulLLMClient):
-        self._directive = directive
-        self._llm_client = llm_client
-        self._tools = dict[str, ToolParam]()
-
-    def act(self, request: str) -> None:
-        self._llm_client.invoke(request, list(self._tools.values()))
-
-
-class MetaAgent(BaseAgent, abc.ABC):
+class MetaAgent(abc.ABC):
     _agents: dict[str, Agent]
 
     @abc.abstractmethod
-    def __init__(self, directive: str, llm_client: StatefulLLMClient): ...
+    def __init__(self, directive: str, llm_client: LLMClient): ...
 
     @abc.abstractmethod
     def orchestrate(self, request: str) -> None: ...
@@ -55,10 +46,21 @@ class MetaAgent(BaseAgent, abc.ABC):
         del self._agents[name]
 
 
+class BaseAgent(Agent):
+    def __init__(self, directive: str, llm_client: LLMClient):
+        self._directive = directive
+        self._llm_client = llm_client
+        self._tools = dict[str, ToolParam]()
+
+    @typing.override
+    def act(self, request: str) -> None:
+        raise NotImplementedError()
+
+
 class BaseMetaAgent(MetaAgent):
     _agents: dict[str, Agent]
 
-    def __init__(self, directive: str, llm_client: StatefulLLMClient):
+    def __init__(self, directive: str, llm_client: LLMClient):
         self._agent = dict[str, Agent]()
         super().__init__(directive, llm_client)
 
