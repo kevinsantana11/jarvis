@@ -55,7 +55,7 @@ class MetaAgent(BaseAgent, abc.ABC):
         del self._agents[name]
 
 
-class BaseMetaAgent(BaseAgent, abc.ABC):
+class BaseMetaAgent(MetaAgent):
     _agents: dict[str, Agent]
 
     def __init__(self, directive: str, llm_client: StatefulLLMClient):
@@ -63,4 +63,5 @@ class BaseMetaAgent(BaseAgent, abc.ABC):
         super().__init__(directive, llm_client)
 
     @abc.abstractmethod
-    def orchestrate(self, request: str) -> None: ...
+    def orchestrate(self, request: str) -> None: 
+        raise NotImplementedError()
