@@ -6,7 +6,7 @@ from anthropic.types import MessageParam, ToolParam
 
 class _LLMClient(abc.ABC):
     @abc.abstractmethod
-    def __init__(self, api_key: str, max_token: int, model: str) -> None: ...
+    def __init__(self, api_key: str, max_token: int, model: str): ...
 
     @abc.abstractmethod
     def _invoke(
@@ -19,7 +19,7 @@ class LLMClient(_LLMClient):
     _max_tokens: int
     _model: str
 
-    def __init__(self, api_key: str, max_tokens: int, model: str) -> None:
+    def __init__(self, api_key: str, max_tokens: int, model: str):
         self._max_tokens = max_tokens
         self._model = model
         self._client = anthropic.Client(api_key=api_key)
@@ -40,7 +40,7 @@ class LLMClient(_LLMClient):
 class StatefulLLMClient(LLMClient):
     _memory: list[MessageParam]
 
-    def __init__(self, api_key: str, max_token: int, model: str) -> None:
+    def __init__(self, api_key: str, max_token: int, model: str):
         self._memory = list[MessageParam]()
         super().__init__(api_key, max_token, model)
 

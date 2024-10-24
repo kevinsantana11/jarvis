@@ -10,16 +10,13 @@ class Agent(abc.ABC):
     _tools: dict[str, ToolParam]
     _llm_client: StatefulLLMClient
 
-    abc.abstractmethod
+    @abc.abstractmethod
+    def __init__(self, directive: str, llm_client: LLMClient): ...
 
-    def __init__(self, directive: str, llm_client: LLMClient) -> None: ...
-
-    abc.abstractmethod
-
+    @abc.abstractmethod
     def act(self, request: str) -> None: ...
 
-    abc.abstractmethod
-
+    @abc.abstractmethod
     def initialize(self) -> None: ...
 
     def directive(self) -> str:
@@ -33,7 +30,7 @@ class Agent(abc.ABC):
 
 
 class BaseAgent(Agent):
-    def __init__(self, directive: str, llm_client: StatefulLLMClient) -> None:
+    def __init__(self, directive: str, llm_client: StatefulLLMClient):
         self._directive = directive
         self._llm_client = llm_client
         self._tools = dict[str, ToolParam]()
@@ -45,12 +42,10 @@ class BaseAgent(Agent):
 class MetaAgent(BaseAgent, abc.ABC):
     _agents: dict[str, Agent]
 
-    def __init__(self, directive: str, llm_client: StatefulLLMClient) -> None:
-        self._agent = dict[str, Agent]()
-        super().__init__(directive, llm_client)
+    @abc.abstractmethod
+    def __init__(self, directive: str, llm_client: StatefulLLMClient): ...
 
-    abc.abstractmethod
-
+    @abc.abstractmethod
     def orchestrate(self, request: str) -> None: ...
 
     def register_agent(self, name: str, agent: Agent) -> None:
@@ -58,3 +53,14 @@ class MetaAgent(BaseAgent, abc.ABC):
 
     def unregister_agent(self, name: str) -> None:
         del self._agents[name]
+
+
+class BaseMetaAgent(BaseAgent, abc.ABC):
+    _agents: dict[str, Agent]
+
+    def __init__(self, directive: str, llm_client: StatefulLLMClient):
+        self._agent = dict[str, Agent]()
+        super().__init__(directive, llm_client)
+
+    @abc.abstractmethod
+    def orchestrate(self, request: str) -> None: ...
