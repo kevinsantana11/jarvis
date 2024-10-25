@@ -2,25 +2,38 @@ from __future__ import annotations
 
 import logging
 
+import dotenv
+
 from jarvis.agents import BaseMetaAgent, MetaAgent
 from jarvis.clients.llm_client import LLMClient
+from jarvis.config import Config
 from jarvis.tools import AudioTransciever
 from jarvis.tools.audio_to_text import AudioTranscieverControls, RecordVoiceInput
 
 _logger = logging.getLogger(__name__)
 
 
+dotenv.load_dotenv()
+
+
 class WakeDaemon:
     audio_transciever: AudioTransciever
     jarvis_agent: MetaAgent
+    config: Config
 
     def __init__(
-        self, audio_transciever: AudioTransciever, jarvis_agent: MetaAgent
+        self,
+        audio_transciever: AudioTransciever,
+        jarvis_agent: MetaAgent,
+        config: Config,
     ) -> None:
         self.audio_transciever = audio_transciever
         self.jarvis_agent = jarvis_agent
+        self.config = config
+        logging.basicConfig(level=config.loglevel)
 
     def default(cls) -> WakeDaemon:
+        config = Config()
         daemon = WakeDaemon(
             audio_transciever=AudioTransciever(),
             jarvis_agent=BaseMetaAgent(
@@ -32,11 +45,12 @@ class WakeDaemon:
                 process and mention the limitation to the user. 
                 """,
                 llm_client=LLMClient(
-                    api_key="",
+                    api_key=config.anthropic_api_key,
                     max_tokens=1024,
-                    model="sonnet...",
+                    model="claude-3-5-sonnet-20241022",
                 ),
             ),
+            config=config,
         )
         _logger.info("Successfully started daemon")
         return daemon
