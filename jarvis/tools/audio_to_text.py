@@ -1,3 +1,4 @@
+import logging
 import wave
 from typing import Literal
 
@@ -6,6 +7,8 @@ import pyaudio
 from pydantic import BaseModel, Field
 
 from jarvis.tools._tool import AnthropicTool
+
+_logger = logging.getLogger(__name__)
 
 
 class RecordVoiceInput(BaseModel):
@@ -72,10 +75,10 @@ class AudioTransciever(AnthropicTool[AudioTranscieverControls, AudioTranscieverO
         stream = self.pyaudio_instance.open(
             self.RATE, self.CHANNELS, self.FORMAT, input=True
         )
-        print("[recording-start]")
+        _logger.info("[recording-start]")
         for _ in range(0, self.RATE // self.CHUNK * record_intervals):
             write_buffer.writeframes(stream.read(self.CHUNK))
-        print("[recording-end]")
+        _logger.info("[recording-end]")
 
         stream.close()
         self.pyaudio_instance.terminate()  # Terminate the pyaudio instance
@@ -89,7 +92,7 @@ class AudioTransciever(AnthropicTool[AudioTranscieverControls, AudioTranscieverO
         transcribed_audio = audio_transcribe.text
         read_buffer.close()
 
-        print("[transcription] - {}".format(transcribed_audio))
+        _logger.info("[transcription] - {}".format(transcribed_audio))
         return AudioTranscieverOutput(
             output=RecordVoiceOutput(
                 control_type="record_voice", text=transcribed_audio

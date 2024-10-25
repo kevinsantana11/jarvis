@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import logging
+
 from jarvis.agents import BaseMetaAgent, MetaAgent
 from jarvis.clients.llm_client import LLMClient
 from jarvis.tools import AudioTransciever
 from jarvis.tools.audio_to_text import AudioTranscieverControls, RecordVoiceInput
+
+_logger = logging.getLogger(__name__)
 
 
 class WakeDaemon:
@@ -17,7 +21,7 @@ class WakeDaemon:
         self.jarvis_agent = jarvis_agent
 
     def default(cls) -> WakeDaemon:
-        return WakeDaemon(
+        daemon = WakeDaemon(
             audio_transciever=AudioTransciever(),
             jarvis_agent=BaseMetaAgent(
                 directive=""""
@@ -34,6 +38,8 @@ class WakeDaemon:
                 ),
             ),
         )
+        _logger.info("Successfully started daemon")
+        return daemon
 
     def run(self) -> None:
         user_request = self.audio_transciever.use(
