@@ -50,14 +50,13 @@ class AudioTransciever(AnthropicTool[AudioTranscieverControls, AudioTranscieverO
 
     @classmethod
     def get_name(cls) -> str:
-        return "AudioToText"
+        return "AudioToText (ATT)"
 
     @classmethod
     def get_description(cls) -> str:
-        return """This tool can be used to to record voice audio input which 
-        is then converted to text by leveraging openai's whisper model. You can
-        utilize this tool to collect a users response to a query you asked the
-        user to better help them with their request.
+        return """This tool can be used to to convert a users voice and words
+         from audio into text by leveragings openai's whisper tts model. This 
+         tool will enable the user to communicate with you, using their voice.
         """
 
     def use(self, control_request: AudioTranscieverControls) -> AudioTranscieverOutput:
