@@ -5,26 +5,34 @@ from pydantic import BaseModel
 
 
 class Tool[_Controls: BaseModel, _Output: BaseModel](abc.ABC):
-    controls: _Controls
+    controls: BaseModel
 
-    @abc.abstractmethod
-    def use(self, control_request: _Controls) -> _Output: ...
+    def use(self, input: dict) -> BaseModel:
+        return self._use(self.transform(input))
 
-    @abc.abstractmethod
     @classmethod
-    def get_name(self) -> str: ...
+    def transform(cls, input: dict) -> _Output:
+        return cls.controls.model_validate(input)
 
     @abc.abstractmethod
+    def _use(cls, control_request: _Controls) -> _Output: ...
+
     @classmethod
-    def get_description(self) -> str: ...
+    @abc.abstractmethod
+    def get_name(cls) -> str: ...
+
+    @classmethod
+    @abc.abstractmethod
+    def get_description(cls) -> str: ...
 
 
 class AnthropicTool[_Controls: BaseModel, _Output: BaseModel](
     Tool[_Controls, _Output], abc.ABC
 ):
-    def tool_description(self) -> ToolParam:
+    @classmethod
+    def tool_description(cls) -> ToolParam:
         return ToolParam(
-            input_schema=self.controls.model_json_schema(),
-            name=self.get_name(),
-            description=self.get_description(),
+            input_schema=cls.controls.model_json_schema(),
+            name=cls.get_name(),
+            description=cls.get_description(),
         )

@@ -2,7 +2,7 @@ import anthropic
 from anthropic.types import ContentBlock, MessageParam, ToolParam
 
 
-class LLMClient:
+class AnthropicLLMClient:
     _client: anthropic.Client
     _max_tokens: int
     _model: str
@@ -13,11 +13,12 @@ class LLMClient:
         self._client = anthropic.Client(api_key=api_key)
 
     def invoke(
-        self, messages: list[MessageParam], tools: list[ToolParam]
+        self, directive: str, messages: list[MessageParam], tools: list[ToolParam]
     ) -> list[ContentBlock]:
         return self._client.messages.create(
             max_tokens=self._max_tokens,
             model=self._model,
             messages=messages,
             tools=tools,
+            system=directive,
         ).content

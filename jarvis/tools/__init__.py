@@ -1,3 +1,3 @@
-from jarvis.tools.audio_to_text import AudioTransciever
+from jarvis.tools.audio_transciever import AudioTransciever
 
 __all__ = ["AudioTransciever"]
