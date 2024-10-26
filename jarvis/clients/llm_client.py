@@ -1,5 +1,5 @@
 import anthropic
-from anthropic.types import ContentBlock, MessageParam, ToolParam
+from anthropic.types import ContentBlock, MessageParam, ToolParam, Message
 
 
 class AnthropicLLMClient:
@@ -14,11 +14,11 @@ class AnthropicLLMClient:
 
     def invoke(
         self, directive: str, messages: list[MessageParam], tools: list[ToolParam]
-    ) -> list[ContentBlock]:
+    ) -> Message:
         return self._client.messages.create(
             max_tokens=self._max_tokens,
             model=self._model,
             messages=messages,
             tools=tools,
             system=directive,
-        ).content
+        )

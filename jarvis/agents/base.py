@@ -35,24 +35,13 @@ class BaseAgent(Agent):
         tools = [t.tool_description() for t in self._tools.values()]
 
         while True:
-            response: list[ContentBlock] = self._anthropic_client.invoke(
-                self.directive(), self._memory, tools
-            )
-
-            assistant_content = list[TextBlockParam | ToolUseBlockParam]()
+            response =  self._anthropic_client.invoke(self.directive(), self._memory, tools)
             user_content = list[TextBlockParam | ToolResultBlockParam]()
-            for cb in response:
+            for cb in response.content:
                 _logger.info(cb)
-                if cb.type == "text":
-                    assistant_content.append(TextBlockParam(text=cb.text))
-                elif cb.type == "tool_use":
+                if cb.type == "tool_use":
                     tool_name = cb.name
                     tool = self._tools.get(tool_name)
-                    assistant_content.append(ToolUseBlockParam(
-                        id=cb.id,
-                        input=cb.input,
-                        name=cb.name
-                    ))
 
                     if tool is not None:
                         output = tool.use(cb.input)
@@ -72,19 +61,8 @@ class BaseAgent(Agent):
                         
 
             self._memory.append(
-                MessageParam(role="assistant", content=response)
+                MessageParam(role="assistant", content=response.content)
             )
             if len(user_content) == 0:
-                user_content.append(TextBlockParam(text="system-message: <no output detected>"))
+                user_content.append(TextBlockParam(type="text", text="system-message: <no output detected>"))
             self._memory.append(MessageParam(role="user", content=user_content))
-
-
-class BaseMetaAgent(MetaAgent, BaseAgent):
-    _agents: dict[str, Agent]
-
-    def __init__(self, directive: str, anthropic_client: AnthropicLLMClient):
-        self._directive = directive
-        self._anthropic_client = anthropic_client
-        self._tools = dict[str, AnthropicTool[typing.Any, typing.Any]]()
-        self._memory = list[MessageParam]()
-        self._agents = dict[str, Agent]()

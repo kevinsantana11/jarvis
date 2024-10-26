@@ -5,7 +5,7 @@ import logging
 import dotenv
 import openai
 
-from jarvis.agents import BaseMetaAgent, MetaAgent
+from jarvis.agents import BaseAgent
 from jarvis.clients.llm_client import AnthropicLLMClient
 from jarvis.config import Config
 from jarvis.tools import AudioTransciever
@@ -18,13 +18,13 @@ dotenv.load_dotenv()
 
 class WakeDaemon:
     audio_transciever: AudioTransciever
-    jarvis_agent: MetaAgent
+    jarvis_agent: BaseAgent
     config: Config
 
     def __init__(
         self,
         audio_transciever: AudioTransciever,
-        jarvis_agent: MetaAgent,
+        jarvis_agent: BaseAgent,
         config: Config,
     ) -> None:
         self.audio_transciever = audio_transciever
@@ -40,7 +40,7 @@ class WakeDaemon:
                 api_key=config.openai_api_key,
             )
         )
-        jarvis_agent = BaseMetaAgent(
+        jarvis_agent = BaseAgent(
             # directive=""""
             # You are a meta agent and your goal is to help users with their
             # requests. You will have several tools and agents that can be

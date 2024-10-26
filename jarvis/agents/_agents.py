@@ -27,13 +27,3 @@ class Agent(abc.ABC):
 
     def unregister_tool(self, name: str) -> None:
         del self._tools[name]
-
-
-class MetaAgent(Agent, abc.ABC):
-    _agents: dict[str, Agent]
-
-    def register_agent(self, name: str, agent: Agent) -> None:
-        self._agents[name] = agent
-
-    def unregister_agent(self, name: str) -> None:
-        del self._agents[name]
