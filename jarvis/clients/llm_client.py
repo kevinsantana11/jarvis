@@ -1,5 +1,5 @@
 import anthropic
-from anthropic.types import ContentBlock, MessageParam, ToolParam, Message
+from anthropic.types import Message, MessageParam, ToolParam
 
 
 class AnthropicLLMClient:

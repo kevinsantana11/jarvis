@@ -1,7 +1,12 @@
 import abc
+import json
+import logging
+import typing
 
 from anthropic.types import ToolParam
 from pydantic import BaseModel
+
+_logger = logging.getLogger(__name__)
 
 
 class Tool[_Controls: BaseModel, _Output: BaseModel](abc.ABC):
@@ -12,7 +17,14 @@ class Tool[_Controls: BaseModel, _Output: BaseModel](abc.ABC):
 
     @classmethod
     def transform(cls, input: dict) -> _Output:
-        return cls.controls.model_validate(input)
+        try:
+            return cls.controls.model_validate(input)
+        except Exception:
+            _logger.warning("Cannot deserialize directly")
+
+        input_obj_str = input.get("input", "{}")
+        input_obj: dict[str, typing.Any] = json.loads(input_obj_str)
+        return cls.controls.model_validate({"input": input_obj})
 
     @abc.abstractmethod
     def _use(cls, control_request: _Controls) -> _Output: ...

@@ -4,6 +4,7 @@ import logging
 
 import dotenv
 import openai
+import webrtcvad
 
 from jarvis.agents import BaseAgent
 from jarvis.clients.llm_client import AnthropicLLMClient
@@ -16,7 +17,7 @@ _logger = logging.getLogger(__name__)
 dotenv.load_dotenv()
 
 
-class WakeDaemon:
+class Daemon:
     audio_transciever: AudioTransciever
     jarvis_agent: BaseAgent
     config: Config
@@ -33,21 +34,15 @@ class WakeDaemon:
         logging.basicConfig(level=config.loglevel)
 
     @classmethod
-    def default(cls) -> WakeDaemon:
+    def default(cls) -> Daemon:
         config = Config()
         audio_transciever = AudioTransciever(
             openai_client=openai.Client(
                 api_key=config.openai_api_key,
-            )
+            ),
+            vad=webrtcvad.Vad(mode=2),
         )
         jarvis_agent = BaseAgent(
-            # directive=""""
-            # You are a meta agent and your goal is to help users with their
-            # requests. You will have several tools and agents that can be
-            # leveraged to complete the users request. If the request cannot
-            # be completed using the available tools, short circuit the
-            # process and mention the limitation to the user.
-            # """,
             directive="""
             You are an agent and your goal is to engage with the user and chat
             with to learn more about them. Use the transciever to prompt the
@@ -61,7 +56,7 @@ class WakeDaemon:
             ),
         )
         jarvis_agent.register_tool(audio_transciever)
-        daemon = WakeDaemon(
+        daemon = Daemon(
             audio_transciever=audio_transciever,
             jarvis_agent=jarvis_agent,
             config=config,
@@ -70,4 +65,7 @@ class WakeDaemon:
         return daemon
 
     def run(self) -> None:
+        # tool_output = self.audio_transciever._record_voice_adaptively(5)
+        # # tool_output = self.audio_transciever._record_voice_manual(5)
+        # _logger.info(tool_output.output.text)
         self.jarvis_agent.act("Initiate conversation")

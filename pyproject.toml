@@ -16,6 +16,8 @@ python-dotenv = "^1.0.1"
 PyAudio = "*"
 pydantic = "*"
 pydub = "*"
+webrtcvad = "*"
+setuptools = "^75.2.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"

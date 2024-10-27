@@ -1,2 +1,2 @@
-class RequestComplete(Exception):
+class RequestComplete(RuntimeError):
     reason: str
