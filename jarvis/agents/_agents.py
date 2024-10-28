@@ -11,9 +11,11 @@ _logger = logging.getLogger(__name__)
 class Agent(abc.ABC):
     _directive: str
     _memory: list[MessageParam]
+    _max_tokens: int
 
-    def __init__(self, directive: str):
+    def __init__(self, directive: str, max_tokens: int):
         self._directive = directive
+        self._max_tokens = max_tokens
         self._memory = list[MessageParam]()
 
     @abc.abstractmethod

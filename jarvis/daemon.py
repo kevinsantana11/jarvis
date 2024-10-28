@@ -63,6 +63,7 @@ class Daemon:
             user with questions and to hear their feedback. Tool use blocks
             should be kept separately from text blocks.
             """,
+            max_tokens=4096,
             anthropic_client=anthropic_client,
         )
         jarvis_agent.register_tool(audio_transciever)
