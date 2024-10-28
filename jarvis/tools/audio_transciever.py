@@ -42,7 +42,7 @@ class OutputVoiceOutput(BaseModel):
 
 class RecordAdaptiveVoiceInput(BaseModel):
     control_type: Literal["record_voice_adaptive"] = "record_voice_adaptive"
-    frame_duration: int = 5 # in ms (milliseconds)
+    frame_duration: int = 5  # in ms (milliseconds)
 
 
 class RecordAdaptiveVoiceOutput(BaseModel):
@@ -57,8 +57,8 @@ class AudioTranscieverControls(BaseModel):
 
 
 class AudioTranscieverOutput(BaseModel):
-    output: RecordVoiceOutput | OutputVoiceOutput | RecordAdaptiveVoiceOutput | None = Field(
-        ..., discriminator="control_type"
+    output: RecordVoiceOutput | OutputVoiceOutput | RecordAdaptiveVoiceOutput | None = (
+        Field(..., discriminator="control_type")
     )
     error: bool = False
     reason: str | None = None
@@ -98,7 +98,9 @@ class AudioTransciever(AnthropicTool[AudioTranscieverControls, AudioTranscieverO
             elif isinstance(control_request.input, OutputVoiceInput):
                 return self._output_voice(control_request.input.text)
             elif isinstance(control_request.input, RecordAdaptiveVoiceInput):
-                return self._record_voice_adaptively(control_request.input.frame_duration)
+                return self._record_voice_adaptively(
+                    control_request.input.frame_duration
+                )
         except Exception as e:
             return AudioTranscieverOutput(output=None, error=True, reason=str(e))
 
@@ -118,17 +120,23 @@ class AudioTransciever(AnthropicTool[AudioTranscieverControls, AudioTranscieverO
 
         try:
             stream = self.pyaudio_instance.open(
-                self.RATE, self.CHANNELS, self.FORMAT, input=True, frames_per_buffer=frames_per_buffer
+                self.RATE,
+                self.CHANNELS,
+                self.FORMAT,
+                input=True,
+                frames_per_buffer=frames_per_buffer,
             )
             while record:
-                if (stream.is_stopped()):
+                if stream.is_stopped():
                     stream.start_stream()
 
                 audiodata_chunks = list[bytes]()
                 for _ in range(0, frames_per_buffer):
                     audiodata_chunks.append(stream.read(frames_per_buffer))
                 stream.stop_stream()
-                frames = utils.frame_generator(20, b"".join(audiodata_chunks), self.RATE)
+                frames = utils.frame_generator(
+                    20, b"".join(audiodata_chunks), self.RATE
+                )
                 new_voice_segments, cont = utils.vad_collector(
                     self.RATE, 20, 400, self.vad, frames
                 )
@@ -141,9 +149,7 @@ class AudioTransciever(AnthropicTool[AudioTranscieverControls, AudioTranscieverO
             stream.close()
 
         if len(voice_segments) == 0:
-            return AudioTranscieverOutput(
-                output=RecordAdaptiveVoiceOutput(text="")
-            )
+            return AudioTranscieverOutput(output=RecordAdaptiveVoiceOutput(text=""))
 
         voiceonly_fp = self._get_tmp_fp("temp_recording_voiceonly", "wav")
         with wave.open(voiceonly_fp, "wb") as wf:
@@ -153,15 +159,13 @@ class AudioTransciever(AnthropicTool[AudioTranscieverControls, AudioTranscieverO
             wf.writeframes(b"".join(voice_segments))
 
         with open(voiceonly_fp, "rb") as read_buffer:
-            audio_transcribe =self.openai_client.audio.transcriptions.create(
+            audio_transcribe = self.openai_client.audio.transcriptions.create(
                 file=read_buffer, model="whisper-1"
             )
             transcribed_audio = audio_transcribe.text
             _logger.info("[transcription] - {}".format(transcribed_audio))
             return AudioTranscieverOutput(
-                output=RecordAdaptiveVoiceOutput(
-                    text=transcribed_audio
-                )
+                output=RecordAdaptiveVoiceOutput(text=transcribed_audio)
             )
 
     def _record_voice_manual(self, record_intervals: int) -> AudioTranscieverOutput:

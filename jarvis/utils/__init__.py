@@ -62,7 +62,6 @@ def vad_collector(sample_rate, frame_duration_ms, padding_duration_ms, vad, fram
     ring_buffer = collections.deque(maxlen=num_padding_frames)
     # We have two states: TRIGGERED and NOTTRIGGERED. We start in the
     # NOTTRIGGERED state.
-    cont = False
     triggered = False
     all_voiced_frames = list[bytes]()
     voiced_frames = list[bytes]()

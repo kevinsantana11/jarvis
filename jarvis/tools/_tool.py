@@ -12,7 +12,7 @@ _logger = logging.getLogger(__name__)
 class Tool[_Controls: BaseModel, _Output: BaseModel](abc.ABC):
     controls: BaseModel
 
-    def use(self, input: dict) -> BaseModel:
+    def use(self, input: dict) -> _Output:
         return self._use(self.transform(input))
 
     @classmethod

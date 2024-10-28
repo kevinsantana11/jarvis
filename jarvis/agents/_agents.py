@@ -1,39 +1,29 @@
 import abc
 import logging
-import typing
 
-from anthropic.types import MessageParam, ToolParam
+from anthropic.types import MessageParam
 
-from jarvis.clients.llm_client import AnthropicLLMClient
 from jarvis.exceptions import RequestComplete
-from jarvis.tools._tool import AnthropicTool
 
 _logger = logging.getLogger(__name__)
 
 
 class Agent(abc.ABC):
     _directive: str
-    _tools: dict[str, AnthropicTool[typing.Any, typing.Any]]
-    _anthropic_client: AnthropicLLMClient
     _memory: list[MessageParam]
 
-    @abc.abstractmethod
-    def __init__(self, directive: str, anthropic_client: AnthropicLLMClient): ...
+    def __init__(self, directive: str):
+        self._directive = directive
+        self._memory = list[MessageParam]()
 
     @abc.abstractmethod
     def _act(self) -> None: ...
 
+    def clear_mem(self):
+        self._memory = list[MessageParam]()
+
     def directive(self) -> str:
         return self._directive
-
-    def tool_descriptions(self) -> list[ToolParam]:
-        return [t.tool_description() for t in self._tools.values()]
-
-    def register_tool(self, tool: AnthropicTool[typing.Any, typing.Any]) -> None:
-        self._tools[tool.get_name()] = tool
-
-    def unregister_tool(self, name: str) -> None:
-        del self._tools[name]
 
     def act(self, request: str) -> None:
         try:

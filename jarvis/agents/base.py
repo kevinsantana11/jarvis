@@ -1,33 +1,63 @@
-import contextlib
 import json
 import logging
 import typing
 
+import anthropic
 from anthropic.types import (
     MessageParam,
     TextBlockParam,
+    ToolParam,
     ToolResultBlockParam,
 )
 
 from jarvis.agents._agents import Agent
-from jarvis.clients.llm_client import AnthropicLLMClient
 from jarvis.tools._tool import AnthropicTool
 
 _logger = logging.getLogger(__name__)
 
 
-class BaseAgent(Agent):
-    def __init__(self, directive: str, anthropic_client: AnthropicLLMClient):
-        self._directive = directive
-        self._anthropic_client = anthropic_client
+class AnthropicAgent(Agent):
+    _tools: dict[str, AnthropicTool[typing.Any, typing.Any]]
+    _anthropic_client: anthropic.Client
+
+    def __init__(self, directive: str, anthropic_client: anthropic.Client):
         self._tools = dict[str, AnthropicTool[typing.Any, typing.Any]]()
-        self._memory = list[MessageParam]()
+        self._anthropic_client = anthropic_client
+        super().__init__(
+            directive,
+        )
+
+    def sonnet(self):
+        return self._anthropic_client.messages.create(
+            max_tokens=self._max_tokens,
+            model="claude-3-5-sonnet-latest",
+            messages=self._memory,
+            tools=self.tool_descriptions(),
+            system=self.directive(),
+        )
+
+    def haiku(self):
+        return self._anthropic_client.messages.create(
+            max_tokens=self._max_tokens,
+            model="claude-3-haiku-20240307",
+            messages=self._memory,
+            tools=self.tool_descriptions(),
+            system=self.directive(),
+        )
+
+    def tool_descriptions(self) -> list[ToolParam]:
+        return [t.tool_description() for t in self._tools.values()]
+
+    def register_tool(self, tool: AnthropicTool[typing.Any, typing.Any]) -> None:
+        self._tools[tool.get_name()] = tool
+
+    def unregister_tool(self, name: str) -> None:
+        del self._tools[name]
 
     @typing.override
     def _act(self) -> None:
-        response = self._anthropic_client.invoke(
-            self.directive(), self._memory, self.tool_descriptions()
-        )
+        response = self.sonnet()
+
         user_content = list[TextBlockParam | ToolResultBlockParam]()
         for cb in response.content:
             _logger.info(cb)
@@ -59,13 +89,9 @@ class BaseAgent(Agent):
                         )
                     )
 
-        self._memory.append(
-            MessageParam(role="assistant", content=response.content)
-        )
+        self._memory.append(MessageParam(role="assistant", content=response.content))
         if len(user_content) == 0:
             user_content.append(
-                TextBlockParam(
-                    type="text", text="system-message: <no output detected>"
-                )
+                TextBlockParam(type="text", text="system-message: <no output detected>")
             )
         self._memory.append(MessageParam(role="user", content=user_content))
