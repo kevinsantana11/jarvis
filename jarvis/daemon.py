@@ -16,6 +16,8 @@ from jarvis.tools.audio_transciever import (
     AudioTranscieverControls,
     RecordAdaptiveVoiceInput,
 )
+from jarvis.tools.google_search import GoogleSearch
+import googleapiclient
 
 _logger = logging.getLogger(__name__)
 
@@ -55,6 +57,12 @@ class Daemon:
             ),
             vad=webrtcvad.Vad(mode=2),
         )
+        google_search = GoogleSearch(
+            googleapiclient.discovery.build(
+                "customsearch", "v1", developerKey=config.google_api_key,
+            )
+        )
+
         anthropic_client = anthropic.Client(api_key=config.anthropic_api_key)
         jarvis_agent = AnthropicAgent(
             directive="""
@@ -67,6 +75,7 @@ class Daemon:
             anthropic_client=anthropic_client,
         )
         jarvis_agent.register_tool(audio_transciever)
+        jarvis_agent.register_tool(google_search)
         daemon = Daemon(
             audio_transciever=audio_transciever,
             jarvis_agent=jarvis_agent,
@@ -89,7 +98,8 @@ class Daemon:
                     max_tokens=2048,
                     system=f"""
                     You are an activation agent, and your goal is to detect whether the user
-                    input includes the activation phrase.
+                    input includes the activation phrase. Approximate words should also work
+                    as activation incase the audio translation is off a bit.
 
                     The activation phrase is: `{activation_phrase}`
                     """,
