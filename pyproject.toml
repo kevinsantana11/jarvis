@@ -18,11 +18,13 @@ pydantic = "*"
 pydub = "*"
 webrtcvad = "*"
 setuptools = "^75.2.0"
+google-api-python-client = "^2.159.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"
 mypy = "*"
 pytest = "*"
+google-api-python-client-stubs = "^1.29.0"
 
 
 [build-system]
