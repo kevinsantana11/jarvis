@@ -19,6 +19,7 @@ pydub = "*"
 webrtcvad = "*"
 setuptools = "^75.2.0"
 google-api-python-client = "^2.159.0"
+beautifulsoup4 = "^4.12.3"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"

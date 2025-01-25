@@ -17,6 +17,7 @@ from jarvis.tools.audio_transciever import (
     RecordAdaptiveVoiceInput,
 )
 from jarvis.tools.google_search import GoogleSearch
+from jarvis.tools.browser import Browser
 import googleapiclient
 
 _logger = logging.getLogger(__name__)
@@ -65,6 +66,7 @@ class Daemon:
             ),
             config.google_search_engine_id,
         )
+        browser = Browser()
 
         anthropic_client = anthropic.Client(api_key=config.anthropic_api_key)
         jarvis_agent = AnthropicAgent(
@@ -79,6 +81,7 @@ class Daemon:
         )
         jarvis_agent.register_tool(audio_transciever)
         jarvis_agent.register_tool(google_search)
+        jarvis_agent.register_tool(browser)
         daemon = Daemon(
             audio_transciever=audio_transciever,
             jarvis_agent=jarvis_agent,
