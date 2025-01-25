@@ -31,7 +31,15 @@ def frame_generator(frame_duration_ms, audio, sample_rate):
     return frames
 
 
-def vad_collector(sample_rate, frame_duration_ms, padding_duration_ms, vad, frames):
+def vad_collector(
+    sample_rate,
+    frame_duration_ms,
+    padding_duration_ms,
+    vad,
+    frames,
+    activation_ratio=0.9,
+    deactivation_ratio=0.9,
+):
     """Filters out non-voiced audio frames.
 
     Given a webrtcvad.Vad and a source of audio frames, yields only
@@ -75,7 +83,7 @@ def vad_collector(sample_rate, frame_duration_ms, padding_duration_ms, vad, fram
             # If we're NOTTRIGGERED and more than 90% of the frames in
             # the ring buffer are voiced frames, then enter the
             # TRIGGERED state.
-            if num_voiced > 0.9 * ring_buffer.maxlen:
+            if num_voiced > activation_ratio * ring_buffer.maxlen:
                 triggered = True
                 # We want to yield all the audio we see from now until
                 # we are NOTTRIGGERED, but we have to start with the
@@ -92,7 +100,7 @@ def vad_collector(sample_rate, frame_duration_ms, padding_duration_ms, vad, fram
             # If more than 90% of the frames in the ring buffer are
             # unvoiced, then enter NOTTRIGGERED and yield whatever
             # audio we've collected.
-            if num_unvoiced > 0.9 * ring_buffer.maxlen:
+            if num_unvoiced > deactivation_ratio * ring_buffer.maxlen:
                 triggered = False
                 # yield b"".join([f.bytes for f in voiced_frames]), False
                 all_voiced_frames.append(b"".join(f.bytes for f in voiced_frames))
@@ -103,4 +111,4 @@ def vad_collector(sample_rate, frame_duration_ms, padding_duration_ms, vad, fram
     if voiced_frames:
         all_voiced_frames.extend([f.bytes for f in voiced_frames])
         # yield b"".join([f.bytes for f in voiced_frames]), True
-    return all_voiced_frames, len(all_voiced_frames) / len(frames) > 0.6
+    return all_voiced_frames, triggered

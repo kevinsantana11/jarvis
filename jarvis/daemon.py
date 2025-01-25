@@ -59,8 +59,11 @@ class Daemon:
         )
         google_search = GoogleSearch(
             googleapiclient.discovery.build(
-                "customsearch", "v1", developerKey=config.google_api_key,
-            )
+                "customsearch",
+                "v1",
+                developerKey=config.google_api_key,
+            ),
+            config.google_search_engine_id,
         )
 
         anthropic_client = anthropic.Client(api_key=config.anthropic_api_key)
@@ -85,6 +88,44 @@ class Daemon:
         _logger.info("Successfully started daemon")
         return daemon
 
+    def activation_func(self, activation_phrase, sensitivity, input_):
+        """Scans through the input and checks if a a word
+        similar to the activation phrase can be found. Activation is triggered
+        based on the configured sensitivity. Higher sensitivity will match words
+        with only a few similar characters while lower sensitivity requires matching
+        more characters.
+        """
+
+        ap_idx = 0
+        left = 0
+        activation_phrase_map = dict()
+        for char in activation_phrase.lower():
+            cnt = activation_phrase_map.get(char, 0)
+            activation_phrase_map[char] = cnt + 1
+
+        input_ = input_.lower()
+        matches = 0
+        for right, char in enumerate(input_):
+            if (
+                input_[right] in activation_phrase_map
+                and activation_phrase_map[input_[right]] == 0
+            ):
+                while activation_phrase_map[input_[right]] == 0:
+                    if input_[left] in activation_phrase_map:
+                        activation_phrase_map[input_[left]] += 1
+                    left += 1
+            elif input_[right] not in activation_phrase_map:
+                while left <= right:
+                    if input_[left] in activation_phrase_map:
+                        activation_phrase_map[input_[left]] += 1
+                    left += 1
+            else:
+                matches = max(matches, right - left + 1)
+                activation_phrase_map[input_[right]] -= 1
+
+        portion = matches / len(activation_phrase)
+        return portion > (1.0 - sensitivity)
+
     def run(self) -> None:
         activation_phrase = "jarvis"
         while True:
@@ -92,34 +133,7 @@ class Daemon:
                 AudioTranscieverControls(input=RecordAdaptiveVoiceInput())
             )
 
-            if tool_output.output.text != "":
-                response = self.anthropic_client.messages.create(
-                    model="claude-3-haiku-20240307",
-                    max_tokens=2048,
-                    system=f"""
-                    You are an activation agent, and your goal is to detect whether the user
-                    input includes the activation phrase. Approximate words should also work
-                    as activation incase the audio translation is off a bit.
-
-                    The activation phrase is: `{activation_phrase}`
-                    """,
-                    messages=[
-                        MessageParam(role="user", content=tool_output.output.text)
-                    ],
-                    tools=[
-                        ToolParam(
-                            name="DaemonController",
-                            input_schema=DaemonControl.model_json_schema(),
-                            description="Utilize this tool to control the daemon.",
-                        )
-                    ],
-                )
-
-                for cb in response.content:
-                    if cb.type == "tool_use":
-                        tool_name = cb.name
-                        if tool_name == "DaemonController":
-                            input = DaemonControl(**cb.input)
-
-                            if input.activate:
-                                self.jarvis_agent.act(tool_output.output.text)
+            if tool_output.output.text != "" and self.activation_func(
+                activation_phrase, 0.50, tool_output.output.text
+            ):
+                self.jarvis_agent.act(tool_output.output.text)

@@ -35,7 +35,7 @@ class Agent(abc.ABC):
         except Exception as e:
             _logger.error(f"Error trying to execute request: {e}")
             _logger.error(f"Memory dump: {str(self._memory)}")
-            raise RuntimeError(e)
+            raise e
 
     def _act_eventloop(self, request: str) -> None:
         self._memory.append({"role": "user", "content": request})
