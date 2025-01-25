@@ -78,10 +78,12 @@ class AudioTransciever(AnthropicTool[AudioTranscieverControls, AudioTranscieverO
         self.openai_client = openai_client
         self.vad = vad
 
+    @typing.override
     @classmethod
     def get_name(cls) -> str:
         return "AudioTransciever"
 
+    @typing.override
     @classmethod
     def get_description(cls) -> str:
         return """This tool can be used to to convert a users voice and words

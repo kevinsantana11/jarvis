@@ -22,6 +22,7 @@ class Tool[_Controls: BaseModel, _Output: BaseModel](abc.ABC):
         except Exception:
             _logger.warning("Cannot deserialize directly")
 
+        # If the model can generate an approximate input we still try to utilize it
         input_obj_str = input.get("input", "{}")
         input_obj: dict[str, typing.Any] = json.loads(input_obj_str)
         return cls.controls.model_validate({"input": input_obj})

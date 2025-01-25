@@ -20,13 +20,12 @@ class AnthropicAgent(Agent):
     _tools: dict[str, AnthropicTool[typing.Any, typing.Any]]
     _anthropic_client: anthropic.Client
 
-    def __init__(self, directive: str, max_tokens: int, anthropic_client: anthropic.Client):
+    def __init__(
+        self, directive: str, max_tokens: int, anthropic_client: anthropic.Client
+    ):
         self._tools = dict[str, AnthropicTool[typing.Any, typing.Any]]()
         self._anthropic_client = anthropic_client
-        super().__init__(
-            directive,
-            max_tokens
-        )
+        super().__init__(directive, max_tokens)
 
     def sonnet(self):
         return self._anthropic_client.messages.create(
