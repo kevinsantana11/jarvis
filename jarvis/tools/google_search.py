@@ -78,10 +78,12 @@ class GoogleSearch(AnthropicTool[GoogleSearchControls, GoogleSearchOutput]):
                 .execute()
             )
             search_results = list()
-            for item in res.items():
+            for item in res.get("items"):
                 search_results.append(
                     SearchResult(
-                        url=item.link, title=item.title, description=item.htmlSnippet
+                        url=item.get("link"),
+                        title=item.get("title"),
+                        description=item.get("htmlSnippet"),
                     )
                 )
             return RunQueryOutput(
